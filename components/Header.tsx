@@ -1,7 +1,20 @@
 import React from 'react';
 import { Circle } from 'lucide-react';
 
-const Header: React.FC = () => {
+export type TabId = 'overview' | 'signals' | 'method';
+
+interface HeaderProps {
+  activeTab: TabId;
+  onTabChange: (tab: TabId) => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ activeTab, onTabChange }) => {
+  const tabs: { id: TabId; label: string }[] = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'signals', label: 'Signals' },
+    { id: 'method', label: 'Method' },
+  ];
+
   return (
     <header className="w-full border-b border-zinc-900/80 bg-black/40 backdrop-blur-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 py-4">
@@ -19,17 +32,21 @@ const Header: React.FC = () => {
           </div>
         </div>
 
-        <div className="hidden md:flex items-center gap-6 text-[11px] tracking-[0.22em] uppercase text-muted">
-          <span className="hover:text-zinc-200 transition-colors cursor-default">
-            Overview
-          </span>
-          <span className="hover:text-zinc-200 transition-colors cursor-default">
-            Signals
-          </span>
-          <span className="hover:text-zinc-200 transition-colors cursor-default">
-            Method
-          </span>
-        </div>
+        <nav className="flex items-center gap-4 md:gap-6 text-[11px] tracking-[0.22em] uppercase">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => onTabChange(tab.id)}
+              className={`transition-colors cursor-pointer ${
+                activeTab === tab.id
+                  ? 'text-accent font-medium'
+                  : 'text-muted hover:text-zinc-200'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
       </div>
     </header>
   );

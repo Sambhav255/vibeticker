@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
+import type { TabId } from './components/Header';
 import SearchBar from './components/SearchBar';
+import { SkeletonOverview } from './components/Skeleton';
 import PriceChart from './components/PriceChart';
 import VibeGauge from './components/VibeGauge';
 import NewsFeed from './components/NewsFeed';
@@ -8,10 +10,15 @@ import { analyzeTicker, checkHealth } from './services/apiClient';
 import { TickerData, FetchStatus } from './types';
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
+const RECENT_MAX = 5;
+
 const App: React.FC = () => {
   const [status, setStatus] = useState<FetchStatus>(FetchStatus.IDLE);
   const [data, setData] = useState<TickerData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<TabId>('overview');
+  const [recentTickers, setRecentTickers] = useState<string[]>([]);
+  const [lastSearchedSymbol, setLastSearchedSymbol] = useState<string>('AAPL');
 
   useEffect(() => {
     let cancelled = false;
@@ -40,6 +47,8 @@ const App: React.FC = () => {
         const result = await analyzeTicker('AAPL');
         if (cancelled) return;
         setData(result);
+        setLastSearchedSymbol('AAPL');
+        setRecentTickers((prev) => ['AAPL', ...prev.filter((s) => s !== 'AAPL')].slice(0, RECENT_MAX));
         setStatus(FetchStatus.SUCCESS);
       } catch (err) {
         if (cancelled) return;
@@ -53,11 +62,15 @@ const App: React.FC = () => {
   }, []);
 
   const handleSearch = async (symbol: string) => {
+    const trimmed = symbol.trim().toUpperCase();
+    if (!trimmed) return;
     setStatus(FetchStatus.LOADING);
     setError(null);
+    setLastSearchedSymbol(trimmed);
     try {
-      const result = await analyzeTicker(symbol);
+      const result = await analyzeTicker(trimmed);
       setData(result);
+      setRecentTickers((prev) => [trimmed, ...prev.filter((s) => s !== trimmed)].slice(0, RECENT_MAX));
       setStatus(FetchStatus.SUCCESS);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to fetch data. Please try again.';
@@ -65,6 +78,8 @@ const App: React.FC = () => {
       setStatus(FetchStatus.ERROR);
     }
   };
+
+  const handleRetry = () => handleSearch(lastSearchedSymbol);
 
   const buildSignalSummary = (payload: TickerData) => {
     const { symbol, percentChange24h, overallVibeScore, correlationScore } = payload;
@@ -95,7 +110,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background text-text font-sans selection:bg-blue-500/30">
-      <Header />
+      <Header activeTab={activeTab} onTabChange={setActiveTab} />
 
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-10 app-noise">
         <div className="text-center mb-10">
@@ -109,13 +124,36 @@ const App: React.FC = () => {
 
         <SearchBar onSearch={handleSearch} isLoading={status === FetchStatus.LOADING} />
 
-        {status === FetchStatus.ERROR && (
-          <div className="max-w-lg mx-auto p-4 mb-8 border border-zinc-900 bg-red-950/40 text-red-200 text-center text-sm">
-            {error}
+        {recentTickers.length > 0 && status !== FetchStatus.LOADING && (
+          <div className="flex flex-wrap justify-center gap-2 mb-6">
+            <span className="text-[10px] tracking-[0.2em] uppercase text-muted mr-1">Recent:</span>
+            {recentTickers.map((sym) => (
+              <button
+                key={sym}
+                onClick={() => handleSearch(sym)}
+                className="px-3 py-1.5 text-xs bg-zinc-900/80 border border-zinc-800 rounded-sm text-muted hover:text-zinc-200 hover:border-zinc-600 transition-colors"
+              >
+                {sym}
+              </button>
+            ))}
           </div>
         )}
 
-        {status === FetchStatus.SUCCESS && data && (
+        {status === FetchStatus.LOADING && <SkeletonOverview />}
+
+        {status === FetchStatus.ERROR && (
+          <div className="max-w-lg mx-auto p-4 mb-8 border border-zinc-900 bg-red-950/40 text-red-200 text-center text-sm space-y-3">
+            <p>{error}</p>
+            <button
+              onClick={handleRetry}
+              className="px-4 py-2 text-xs font-medium bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-sm transition-colors"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
+        {status === FetchStatus.SUCCESS && data && activeTab === 'overview' && (
           <div className="space-y-8 fade-in-slow">
             {/* Signal Card */}
             <section className="border border-zinc-900 bg-[rgba(12,12,12,0.95)] px-6 py-5 rounded-sm flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -205,6 +243,66 @@ const App: React.FC = () => {
               </div>
             </div>
 
+          </div>
+        )}
+
+        {status === FetchStatus.SUCCESS && data && activeTab === 'signals' && (
+          <div className="space-y-8 fade-in-slow">
+            <section className="border border-zinc-900 bg-[rgba(12,12,12,0.95)] px-6 py-5 rounded-sm">
+              <div className="text-[11px] tracking-[0.22em] uppercase text-muted mb-4">
+                Signal Summary
+              </div>
+              <p className="text-sm md:text-base leading-relaxed text-zinc-200">
+                {buildSignalSummary(data)}
+              </p>
+              <div className="mt-6 flex flex-wrap gap-2">
+                <span className="text-[10px] tracking-[0.2em] uppercase text-muted mr-2">Keywords:</span>
+                {data.topKeywords.map((kw) => (
+                  <span
+                    key={kw}
+                    className="px-2 py-1 bg-zinc-800/80 rounded text-xs text-muted"
+                  >
+                    {kw}
+                  </span>
+                ))}
+              </div>
+            </section>
+            <NewsFeed news={data.news} />
+          </div>
+        )}
+
+        {activeTab === 'method' && (
+          <div className="max-w-2xl mx-auto space-y-8 fade-in-slow">
+            <section className="border border-zinc-900 bg-[rgba(12,12,12,0.95)] px-6 py-8 rounded-sm space-y-6">
+              <h3 className="text-[11px] tracking-[0.22em] uppercase text-muted">
+                How It Works
+              </h3>
+              <p className="text-sm text-zinc-300 leading-relaxed">
+                VibeTicker combines price data, news headlines, and AI sentiment analysis to surface how market sentiment aligns with price movement.
+              </p>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-xs font-medium text-accent mb-2">Data Sources</h4>
+                  <ul className="text-sm text-muted space-y-1">
+                    <li>• <strong className="text-zinc-300">Price:</strong> Alpha Vantage (stocks, ETFs, crypto)</li>
+                    <li>• <strong className="text-zinc-300">News:</strong> NewsAPI headlines</li>
+                    <li>• <strong className="text-zinc-300">Sentiment:</strong> Google Gemini AI</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="text-xs font-medium text-accent mb-2">Vibe Score (0–100)</h4>
+                  <p className="text-sm text-muted">
+                    Aggregated sentiment from news articles: Bullish, Bearish, or Neutral per headline, normalized to a 0–100 scale.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="text-xs font-medium text-accent mb-2">Correlation</h4>
+                  <p className="text-sm text-muted">
+                    Compares recent price direction with news sentiment direction. Higher values suggest price and sentiment move together.
+                  </p>
+                </div>
+              </div>
+            </section>
           </div>
         )}
 
