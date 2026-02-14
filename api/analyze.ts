@@ -5,19 +5,21 @@ export const config = { maxDuration: 60 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const sendJson = (status: number, data: object) => {
-    res.setHeader('Content-Type', 'application/json');
-    res.status(status).json(data);
+    if (!res.headersSent) {
+      res.setHeader('Content-Type', 'application/json');
+      res.status(status).end(JSON.stringify(data));
+    }
   };
 
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   try {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-    if (req.method === 'OPTIONS') {
-      return res.status(200).end();
-    }
-
     if (req.method !== 'GET') {
       return sendJson(405, { error: 'Method not allowed' });
     }
@@ -37,6 +39,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return sendJson(200, data);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to fetch data';
+    console.error('[api/analyze]', message, err);
     return sendJson(500, { error: message });
   }
 }
