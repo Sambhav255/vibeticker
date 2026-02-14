@@ -22,13 +22,17 @@ const App: React.FC = () => {
       try {
         const health = await checkHealth();
         if (cancelled) return;
-        if (!health.ok) {
+        const env = health?.env;
+        const ok = health?.ok;
+        if (!ok || !env) {
           const missing = [
-            !health.env.gemini && 'GEMINI_API_KEY',
-            !health.env.alpha && 'ALPHAVANTAGE_API_KEY',
+            !env?.gemini && 'GEMINI_API_KEY',
+            !env?.alpha && 'ALPHAVANTAGE_API_KEY',
           ].filter(Boolean);
           setError(
-            `Missing required API keys: ${missing.join(', ')}. Add them in Vercel → Settings → Environment Variables, then redeploy. NEWSAPI_KEY is optional.`
+            missing.length > 0
+              ? `Missing required API keys: ${missing.join(', ')}. Add them in Vercel → Settings → Environment Variables, then redeploy. NEWSAPI_KEY is optional.`
+              : 'Could not reach API. Add GEMINI_API_KEY, ALPHAVANTAGE_API_KEY, and NEWSAPI_KEY in Vercel → Settings → Environment Variables, then redeploy.'
           );
           setStatus(FetchStatus.ERROR);
           return;
