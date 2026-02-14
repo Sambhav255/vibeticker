@@ -3,8 +3,18 @@ import { TickerData, NewsItem } from '../types';
 import { fetchNewsArticles, convertToNewsItems } from './newsService';
 import { fetchPriceData } from './priceService';
 
-// Initialize Gemini Client - apiKey from server env (never exposed to client)
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// Lazy-init to avoid crashing at module load if env vars missing
+let _ai: GoogleGenAI | null = null;
+const getAi = () => {
+  if (!_ai) {
+    const key = process.env.GEMINI_API_KEY;
+    if (!key || key === 'your_gemini_api_key_here') {
+      throw new Error('GEMINI_API_KEY is not set. Add it in Vercel → Settings → Environment Variables.');
+    }
+    _ai = new GoogleGenAI({ apiKey: key });
+  }
+  return _ai;
+};
 
 /**
  * Analyzes sentiment of real news articles using Gemini
@@ -14,8 +24,9 @@ const analyzeNewsSentiment = async (newsItems: Omit<NewsItem, 'sentimentScore' |
     return [];
   }
 
-  const model = "gemini-3-flash-preview";
-  
+  const model = "gemini-2.0-flash";
+  const ai = getAi();
+
   const prompt = `
     Analyze the sentiment of these financial news articles. For each article, provide:
     1. A sentiment score from -1.0 (very bearish) to 1.0 (very bullish)
@@ -70,7 +81,10 @@ const analyzeNewsSentiment = async (newsItems: Omit<NewsItem, 'sentimentScore' |
 };
 
 export const analyzeTicker = async (symbol: string): Promise<TickerData> => {
-  const model = "gemini-3-flash-preview";
+  // Validate required env vars before making external calls
+  if (!process.env.ALPHAVANTAGE_API_KEY || process.env.ALPHAVANTAGE_API_KEY === 'your_alphavantage_api_key_here') {
+    throw new Error('ALPHAVANTAGE_API_KEY is not set. Add it in Vercel → Settings → Environment Variables.');
+  }
 
   // Step 0: Fetch real price data from Alpha Vantage
   const priceData = await fetchPriceData(symbol);
