@@ -1,0 +1,49 @@
+ :root {
+   --vt-bg: #080808;
+   --vt-surface: #111111;
+   --vt-accent: #f5d08b;
+   --vt-text: #f9fafb;
+   --vt-muted: #71717a;
+ }
+
+ body {
+   margin: 0;
+   background-color: var(--vt-bg);
+   color: var(--vt-text);
+   font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+     sans-serif;
+ }
+
+ .app-noise {
+   position: relative;
+ }
+
+ .app-noise::before {
+   content: "";
+   position: fixed;
+   inset: -40px;
+   pointer-events: none;
+   z-index: 0;
+   opacity: 0.08;
+   mix-blend-mode: soft-light;
+   background-image:
+     radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.18) 1px, transparent 0),
+     radial-gradient(circle at 3px 3px, rgba(0, 0, 0, 0.7) 1px, transparent 0);
+   background-size: 4px 4px, 6px 6px;
+ }
+
+ .fade-in-slow {
+   animation: fade-in-slow 900ms ease-out both;
+ }
+
+ @keyframes fade-in-slow {
+   from {
+     opacity: 0;
+     transform: translateY(4px);
+   }
+   to {
+     opacity: 1;
+     transform: translateY(0);
+   }
+ }
+
