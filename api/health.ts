@@ -14,10 +14,21 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
   const news = !!process.env.NEWSAPI_KEY;
   const allSet = gemini && alpha;
 
-  res.setHeader('Content-Type', 'application/json');
-  res.status(200).json({
+  const payload: Record<string, unknown> = {
     ok: allSet,
     env: { gemini, alpha, news },
     message: allSet ? 'All required keys are set' : 'Missing keys - check Vercel env vars and redeploy',
-  });
+  };
+
+  // ?debug=1 returns extra diagnostic info (no secrets)
+  if (req.query.debug === '1') {
+    payload._debug = {
+      onVercel: !!process.env.VERCEL,
+      vercelEnv: process.env.VERCEL_ENV || null,
+      hint: !allSet ? 'Redeploy after adding env vars. Env vars only apply to new deployments.' : null,
+    };
+  }
+
+  res.setHeader('Content-Type', 'application/json');
+  res.status(200).json(payload);
 }
