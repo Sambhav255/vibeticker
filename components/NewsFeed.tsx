@@ -25,14 +25,14 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ news }) => {
           
           if (item.sentimentLabel === 'Bullish') {
             Icon = Smile;
-            colorClass = "text-accent bg-accent/5 border-accent/40";
+            colorClass = "text-emerald-400/90 bg-emerald-500/10 border-emerald-500/30";
           } else if (item.sentimentLabel === 'Bearish') {
             Icon = Frown;
-            colorClass = "text-accent bg-accent/5 border-accent/40";
+            colorClass = "text-rose-400/90 bg-rose-500/10 border-rose-500/30";
           }
 
           return (
-            <div key={index} className="p-4 rounded-sm bg-black/40 border border-zinc-900 hover:border-zinc-700 transition-colors group">
+            <div key={`${item.headline}-${item.source}-${index}`} className="p-4 rounded-sm bg-black/40 border border-zinc-900 hover:border-zinc-700 transition-colors group">
               <div className="flex justify-between items-start gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">

@@ -18,6 +18,14 @@ interface PriceChartProps {
 }
 
 const PriceChart: React.FC<PriceChartProps> = ({ data, symbol }) => {
+  if (!data || data.length === 0) {
+    return (
+      <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl h-[400px] flex items-center justify-center">
+        <p className="text-slate-400 text-sm">No price history available for {symbol}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl h-[400px] flex flex-col">
       <div className="flex justify-between items-center mb-6">

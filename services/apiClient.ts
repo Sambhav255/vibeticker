@@ -8,16 +8,45 @@ export type { TickerSuggestion };
 
 const getBaseUrl = () => import.meta.env.VITE_API_URL || '';
 
+const ENV_VARS_MSG =
+  'Add GEMINI_API_KEY, ALPHAVANTAGE_API_KEY, and NEWSAPI_KEY in Vercel → Settings → Environment Variables, then redeploy.';
+
+export type HealthResult = {
+  ok: boolean;
+  env: { gemini: boolean; alpha: boolean; news: boolean };
+  message?: string;
+};
+
+export const checkHealth = async (): Promise<HealthResult> => {
+  const base = getBaseUrl();
+  const isLocal = import.meta.env.DEV && (typeof window === 'undefined' || window.location?.hostname === 'localhost');
+  try {
+    const res = await fetch(`${base}/api/health`);
+    const text = await res.text();
+    try {
+      const data = text ? JSON.parse(text) : {};
+      return data as HealthResult;
+    } catch {
+      const msg = isLocal
+        ? 'Backend not reachable. Run `npm run dev` and ensure port 4001 is free.'
+        : 'Could not reach API. ' + ENV_VARS_MSG;
+      throw new Error(msg);
+    }
+  } catch (err) {
+    if (err instanceof Error && (err.message.includes('Could not reach') || err.message.includes('Backend not reachable'))) throw err;
+    const msg = isLocal
+      ? 'Backend not reachable. Run `npm run dev` and ensure port 4001 is free.'
+      : 'Could not reach API. ' + ENV_VARS_MSG;
+    throw new Error(msg);
+  }
+};
+
 const safeParseJson = async (res: Response): Promise<unknown> => {
   const text = await res.text();
   try {
     return text ? JSON.parse(text) : null;
   } catch {
-    throw new Error(
-      res.ok
-        ? 'Invalid response from server'
-        : 'Server error. Add GEMINI_API_KEY, ALPHAVANTAGE_API_KEY, and NEWSAPI_KEY in Vercel → Settings → Environment Variables, then redeploy.'
-    );
+    throw new Error(res.ok ? 'Invalid response from server' : ENV_VARS_MSG);
   }
 };
 

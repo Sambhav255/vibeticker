@@ -44,13 +44,14 @@ Sentiment vs price: a calm, editorial view of how markets and news flow move tog
 
 1. Push your code to GitHub
 2. Go to [vercel.com](https://vercel.com) → **Add New** → **Project** → Import your repo
-3. **Before deploying**, add environment variables in **Settings** → **Environment Variables**:
-   - `GEMINI_API_KEY` (required)
-   - `ALPHAVANTAGE_API_KEY` (required)
-   - `NEWSAPI_KEY` (optional)
-   - Set each for **Production** (or **All Environments**)
+3. **Before deploying** (or in the deploy wizard), expand **Environment Variables** and add:
+   | Name | Value | Environment |
+   |------|-------|-------------|
+   | `GEMINI_API_KEY` | Your key from [Google AI Studio](https://aistudio.google.com/apikey) | Production, Preview |
+   | `ALPHAVANTAGE_API_KEY` | Your key from [Alpha Vantage](https://www.alphavantage.co/support/#api-key) | Production, Preview |
+   | `NEWSAPI_KEY` | Your key from [NewsAPI](https://newsapi.org/) (optional) | Production, Preview |
 4. Click **Deploy**
-5. **Important:** If you add or change env vars after the first deploy, go to **Deployments** → ⋮ → **Redeploy** so they take effect
+5. **If you see "Missing API keys" after deploy:** Go to your project → **Settings** → **Environment Variables**, add the keys above, then **Deployments** → ⋮ on latest → **Redeploy**
 
 **Rotate your API keys** if they were ever committed or exposed.
 

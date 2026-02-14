@@ -4,7 +4,7 @@ import SearchBar from './components/SearchBar';
 import PriceChart from './components/PriceChart';
 import VibeGauge from './components/VibeGauge';
 import NewsFeed from './components/NewsFeed';
-import { analyzeTicker } from './services/apiClient';
+import { analyzeTicker, checkHealth } from './services/apiClient';
 import { TickerData, FetchStatus } from './types';
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
@@ -13,10 +13,39 @@ const App: React.FC = () => {
   const [data, setData] = useState<TickerData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Initial load - use AAPL (stock) for reliable first load; crypto (BTC) uses different endpoint
   useEffect(() => {
-    handleSearch('AAPL');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let cancelled = false;
+
+    (async () => {
+      setStatus(FetchStatus.LOADING);
+      setError(null);
+      try {
+        const health = await checkHealth();
+        if (cancelled) return;
+        if (!health.ok) {
+          const missing = [
+            !health.env.gemini && 'GEMINI_API_KEY',
+            !health.env.alpha && 'ALPHAVANTAGE_API_KEY',
+          ].filter(Boolean);
+          setError(
+            `Missing required API keys: ${missing.join(', ')}. Add them in Vercel → Settings → Environment Variables, then redeploy. NEWSAPI_KEY is optional.`
+          );
+          setStatus(FetchStatus.ERROR);
+          return;
+        }
+        const result = await analyzeTicker('AAPL');
+        if (cancelled) return;
+        setData(result);
+        setStatus(FetchStatus.SUCCESS);
+      } catch (err) {
+        if (cancelled) return;
+        const message = err instanceof Error ? err.message : 'Failed to fetch data. Please try again.';
+        setError(message);
+        setStatus(FetchStatus.ERROR);
+      }
+    })();
+
+    return () => { cancelled = true; };
   }, []);
 
   const handleSearch = async (symbol: string) => {
@@ -114,7 +143,7 @@ const App: React.FC = () => {
                           ) : (
                             <ArrowDownRight className="w-3 h-3" />
                           )}
-                          {data.percentChange24h}%
+                          {data.percentChange24h >= 0 ? '+' : ''}{data.percentChange24h.toFixed(2)}%
                         </span>
                       </div>
                     </div>
