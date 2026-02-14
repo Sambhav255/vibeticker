@@ -46,13 +46,14 @@ const safeParseJson = async (res: Response, parseErrorMsg?: string): Promise<unk
   try {
     return text ? JSON.parse(text) : null;
   } catch {
-    const msg = res.ok ? 'Invalid response from server' : (parseErrorMsg ?? ENV_VARS_MSG);
-    throw new Error(msg);
+    const base = res.ok ? 'Invalid response from server' : (parseErrorMsg ?? ENV_VARS_MSG);
+    const statusHint = !res.ok ? ` (HTTP ${res.status})` : '';
+    throw new Error(base + statusHint);
   }
 };
 
 const ANALYZE_FAIL_MSG =
-  'Analysis failed. The API may be rate-limited (Alpha Vantage: 5 calls/min) or temporarily unavailable. Try again in a minute.';
+  'Analysis failed. The API may be rate-limited (Alpha Vantage: 5 calls/min) or temporarily unavailable.';
 
 export const analyzeTicker = async (symbol: string): Promise<TickerData> => {
   const base = getBaseUrl();

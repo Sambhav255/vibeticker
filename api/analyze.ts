@@ -1,6 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { analyzeTicker } from '../services/geminiService';
 
+export const config = { maxDuration: 60 };
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const sendJson = (status: number, data: object) => {
     res.setHeader('Content-Type', 'application/json');
