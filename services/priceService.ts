@@ -1,4 +1,4 @@
-import { PricePoint } from '../types';
+import { PricePoint } from '../types.js';
 
 interface AlphaVantageDailyResponse {
   'Time Series (Daily)'?: Record<string, Record<string, string>>;

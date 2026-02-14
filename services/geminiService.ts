@@ -1,7 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { TickerData, NewsItem } from '../types';
-import { fetchNewsArticles, convertToNewsItems } from './newsService';
-import { fetchPriceData } from './priceService';
+import { TickerData, NewsItem } from '../types.js';
+import { fetchNewsArticles, convertToNewsItems } from './newsService.js';
+import { fetchPriceData } from './priceService.js';
 
 // Lazy-init to avoid crashing at module load if env vars missing
 let _ai: GoogleGenAI | null = null;

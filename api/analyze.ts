@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { analyzeTicker } from '../services/geminiService';
+import { analyzeTicker } from '../services/geminiService.js';
 
 export const config = { maxDuration: 60 };
 

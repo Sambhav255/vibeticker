@@ -1,4 +1,4 @@
-import { NewsItem } from '../types';
+import { NewsItem } from '../types.js';
 
 interface NewsAPIArticle {
   title: string;
