@@ -43,15 +43,16 @@ Sentiment vs price: a calm, editorial view of how markets and news flow move tog
 ## Deploy to Vercel
 
 1. Push your code to GitHub
-2. Import the project in [Vercel](https://vercel.com)
-3. Add environment variables in Project Settings → Environment Variables:
-   - `GEMINI_API_KEY`
-   - `ALPHAVANTAGE_API_KEY`
+2. Go to [vercel.com](https://vercel.com) → **Add New** → **Project** → Import your repo
+3. **Before deploying**, add environment variables in **Settings** → **Environment Variables**:
+   - `GEMINI_API_KEY` (required)
+   - `ALPHAVANTAGE_API_KEY` (required)
    - `NEWSAPI_KEY` (optional)
+   - Set each for **Production** (or **All Environments**)
+4. Click **Deploy**
+5. **Important:** If you add or change env vars after the first deploy, go to **Deployments** → ⋮ → **Redeploy** so they take effect
 
-4. Deploy
-
-**Rotate your API keys** if they were ever committed or exposed. Create new keys in each provider's dashboard and update your env vars.
+**Rotate your API keys** if they were ever committed or exposed.
 
 ## Data Sources
 
