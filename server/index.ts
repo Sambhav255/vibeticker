@@ -4,7 +4,7 @@ import { analyzeTicker } from '../services/geminiService';
 import { searchTickers } from '../services/symbolService';
 
 const app = express();
-const PORT = 3001;
+const PORT = parseInt(process.env.PORT || '4001', 10);
 
 app.get('/api/analyze', async (req, res) => {
   const symbol = req.query.symbol;

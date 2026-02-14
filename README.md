@@ -23,7 +23,7 @@ Sentiment vs price: a calm, editorial view of how markets and news flow move tog
    ```bash
    npm run dev
    ```
-   Starts the frontend (Vite) and the local API server. Opens at http://localhost:3000
+   Starts the frontend (Vite) and the local API server on port 4001. Open the URL shown in the terminal (usually http://localhost:5173 or http://localhost:5174).
 
    Or use **Vercel CLI** to mirror production:
    ```bash
